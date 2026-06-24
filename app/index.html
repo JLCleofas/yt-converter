@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>yt-mp3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0E0E0F;
+      --surface:   #1A1A1C;
+      --border:    #2C2C2F;
+      --text:      #F0EEE9;
+      --muted:     #6B6B70;
+      --accent:    #E8A020;
+      --danger:    #C0392B;
+      --success:   #2ECC71;
+      --mono:      'JetBrains Mono', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .tagline {
+      margin-top: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Waveform ── */
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 48px;
+      margin-bottom: 2.5rem;
+    }
+
+    .waveform-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: height 0.3s ease, background 0.4s ease;
+    }
+
+    /* idle: flat line */
+    .waveform.idle .waveform-bar { height: 3px; background: var(--border); }
+
+    /* running: pulsing animation */
+    .waveform.running .waveform-bar {
+      background: var(--accent);
+      animation: pulse 1s ease-in-out infinite alternate;
+    }
+    .waveform.running .waveform-bar:nth-child(2)  { animation-delay: 0.10s; }
+    .waveform.running .waveform-bar:nth-child(3)  { animation-delay: 0.20s; }
+    .waveform.running .waveform-bar:nth-child(4)  { animation-delay: 0.05s; }
+    .waveform.running .waveform-bar:nth-child(5)  { animation-delay: 0.15s; }
+    .waveform.running .waveform-bar:nth-child(6)  { animation-delay: 0.25s; }
+    .waveform.running .waveform-bar:nth-child(7)  { animation-delay: 0.08s; }
+    .waveform.running .waveform-bar:nth-child(8)  { animation-delay: 0.18s; }
+    .waveform.running .waveform-bar:nth-child(9)  { animation-delay: 0.12s; }
+    .waveform.running .waveform-bar:nth-child(10) { animation-delay: 0.22s; }
+    .waveform.running .waveform-bar:nth-child(11) { animation-delay: 0.07s; }
+    .waveform.running .waveform-bar:nth-child(12) { animation-delay: 0.17s; }
+    .waveform.running .waveform-bar:nth-child(13) { animation-delay: 0.27s; }
+    .waveform.running .waveform-bar:nth-child(14) { animation-delay: 0.03s; }
+    .waveform.running .waveform-bar:nth-child(15) { animation-delay: 0.13s; }
+    .waveform.running .waveform-bar:nth-child(16) { animation-delay: 0.23s; }
+
+    @keyframes pulse {
+      from { height: 4px; }
+      to   { height: 36px; }
+    }
+
+    /* done: resolved bars (static, amber) */
+    .waveform.done .waveform-bar { background: var(--success); }
+
+    /* failed: flat, red */
+    .waveform.failed .waveform-bar { height: 3px; background: var(--danger); }
+
+    /* ── Card ── */
+    .card {
+      width: 100%;
+      max-width: 540px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.75rem;
+    }
+
+    /* ── Input row ── */
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .url-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      padding: 0.6rem 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+
+    .url-input::placeholder { color: var(--muted); }
+
+    .url-input:focus { border-color: var(--accent); }
+
+    .btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 4px;
+      color: #0E0E0F;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 0.6rem 1.1rem;
+      text-transform: uppercase;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn:hover:not(:disabled) { opacity: 0.85; }
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* ── Status area ── */
+    .status-area {
+      margin-top: 1.25rem;
+      min-height: 1.4rem;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-text { color: var(--muted); }
+    .status-text.error { color: var(--danger); }
+    .status-text.success { color: var(--success); }
+
+    .status-dot.idle    { background: var(--border); }
+    .status-dot.running { background: var(--accent); animation: blink 1s step-start infinite; }
+    .status-dot.done    { background: var(--success); }
+    .status-dot.failed  { background: var(--danger); }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* ── Download button (hidden until done) ── */
+    .download-btn {
+      display: none;
+      width: 100%;
+      margin-top: 1rem;
+      background: transparent;
+      border: 1px solid var(--success);
+      border-radius: 4px;
+      color: var(--success);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 0.65rem;
+      text-align: center;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .download-btn:hover { background: var(--success); color: #0E0E0F; }
+    .download-btn.visible { display: block; }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 2rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      .waveform-bar, .status-dot { animation: none !important; }
+      .waveform.running .waveform-bar { height: 20px; }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 480px) {
+      .input-row { flex-direction: column; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">yt<span>-</span>mp3</div>
+    <div class="tagline">youtube → audio / local</div>
+  </header>
+
+  <!-- Waveform visualiser -->
+  <div class="waveform idle" id="waveform" aria-hidden="true">
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+    <div class="waveform-bar"></div>
+  </div>
+
+  <main class="card" role="main">
+    <div class="input-row">
+      <input
+        id="url-input"
+        class="url-input"
+        type="url"
+        placeholder="https://youtube.com/watch?v=..."
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        aria-label="YouTube URL"
+      />
+      <button id="convert-btn" class="btn" aria-label="Convert to MP3">
+        Convert
+      </button>
+    </div>
+
+    <div class="status-area" role="status" aria-live="polite">
+      <div class="status-dot idle" id="status-dot"></div>
+      <span class="status-text" id="status-text">ready</span>
+    </div>
+
+    <a
+      id="download-btn"
+      class="download-btn"
+      href="#"
+      download
+      role="button"
+      aria-label="Download MP3"
+    >
+      ↓ download mp3
+    </a>
+  </main>
+
+  <footer>
+    <a href="/api/docs" target="_blank" rel="noopener">api docs</a>
+    &nbsp;·&nbsp; local network only
+  </footer>
+
+  <script>
+    // ── DOM refs ──────────────────────────────────────────────────────
+    const urlInput    = document.getElementById('url-input');
+    const convertBtn  = document.getElementById('convert-btn');
+    const statusDot   = document.getElementById('status-dot');
+    const statusText  = document.getElementById('status-text');
+    const downloadBtn = document.getElementById('download-btn');
+    const waveform    = document.getElementById('waveform');
+
+    // ── State ─────────────────────────────────────────────────────────
+    let pollInterval = null;
+
+    // ── Helpers ───────────────────────────────────────────────────────
+    function setWaveform(state) {
+      waveform.className = `waveform ${state}`;
+    }
+
+    function setStatus(state, message) {
+      statusDot.className  = `status-dot ${state}`;
+      statusText.className = `status-text${state === 'failed' ? ' error' : state === 'done' ? ' success' : ''}`;
+      statusText.textContent = message;
+    }
+
+    function setLoading(isLoading) {
+      convertBtn.disabled = isLoading;
+      urlInput.disabled   = isLoading;
+    }
+
+    function stopPolling() {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }
+
+    function reset() {
+      stopPolling();
+      setWaveform('idle');
+      setStatus('idle', 'ready');
+      downloadBtn.classList.remove('visible');
+      downloadBtn.href = '#';
+      setLoading(false);
+    }
+
+    // ── Convert ───────────────────────────────────────────────────────
+    async function startConversion() {
+      const url = urlInput.value.trim();
+
+      if (!url) {
+        setStatus('failed', 'paste a youtube url first');
+        return;
+      }
+
+      reset();
+      setLoading(true);
+      setWaveform('running');
+      setStatus('running', 'submitting...');
+
+      let jobId;
+
+      try {
+        const res = await fetch('/api/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.detail || `server error ${res.status}`);
+        }
+
+        jobId = data.job_id;
+
+      } catch (err) {
+        setWaveform('failed');
+        setStatus('failed', err.message);
+        setLoading(false);
+        return;
+      }
+
+      setStatus('running', 'converting...');
+      pollStatus(jobId);
+    }
+
+    // ── Poll ──────────────────────────────────────────────────────────
+    function pollStatus(jobId) {
+      pollInterval = setInterval(async () => {
+        try {
+          const res  = await fetch(`/api/status/${jobId}`);
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.detail || `server error ${res.status}`);
+          }
+
+          if (data.status === 'done') {
+            stopPolling();
+            onDone(jobId);
+
+          } else if (data.status === 'failed') {
+            stopPolling();
+            onFailed(data.error || 'conversion failed');
+          }
+          // pending / running: keep polling
+
+        } catch (err) {
+          stopPolling();
+          setWaveform('failed');
+          setStatus('failed', err.message);
+          setLoading(false);
+        }
+      }, 2000);
+    }
+
+    // ── Done ──────────────────────────────────────────────────────────
+    function onDone(jobId) {
+      setWaveform('done');
+      setStatus('done', 'ready to download');
+      setLoading(false);
+
+      downloadBtn.href = `/api/download/${jobId}`;
+      downloadBtn.classList.add('visible');
+    }
+
+    // ── Failed ────────────────────────────────────────────────────────
+    function onFailed(message) {
+      setWaveform('failed');
+      setStatus('failed', message);
+      setLoading(false);
+    }
+
+    // ── Events ────────────────────────────────────────────────────────
+    convertBtn.addEventListener('click', startConversion);
+
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') startConversion();
+    });
+
+    // Reset state when user edits the URL after a completed/failed job
+    urlInput.addEventListener('input', () => {
+      if (statusDot.className.includes('done') || statusDot.className.includes('failed')) {
+        reset();
+      }
+    });
+
+    // Prevent the download anchor's default navigation — let the browser
+    // handle the file download response from the API without a page reload.
+    downloadBtn.addEventListener('click', (e) => {
+      if (downloadBtn.href === '#' || downloadBtn.href === window.location.href) {
+        e.preventDefault();
+        return;
+      }
+      // After download is triggered, reset UI for a fresh conversion
+      setTimeout(reset, 500);
+    });
+  </script>
+</body>
+</html>
