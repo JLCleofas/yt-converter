@@ -3,7 +3,7 @@
 # Install Python dependencies into an isolated layer.
 # This stage is never shipped — only its /install output is.
 # ============================================================
-FROM python:3.14-slim AS builder
+FROM python:3.12-slim AS builder
 
 WORKDIR /build
 
@@ -26,10 +26,10 @@ RUN pip install --upgrade pip && \
 # Stage 2 — runtime
 # Lean final image: Python + ffmpeg + yt-dlp + our app code.
 # ============================================================
-FROM python:3.14-slim AS runtime
+FROM python:3.12-slim AS runtime
 
 # --- labels ---
-LABEL maintainer="you@local" \
+LABEL maintainer="contact@johnlouiecleofas.com" \
       description="yt-mp3: YouTube to MP3 converter" \
       version="1.0.0"
 
@@ -39,6 +39,8 @@ LABEL maintainer="you@local" \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ffmpeg curl && \
     rm -rf /var/lib/apt/lists/*
+
+ENV FFMPEG_LOCATION=/usr/bin/ffmpeg
 
 # --- yt-dlp ---
 # Installed via pip rather than the standalone binary so it sits
