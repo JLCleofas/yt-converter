@@ -29,3 +29,6 @@ tmp/
 
 # Logs
 *.log
+
+#Environment Variables
+.env
