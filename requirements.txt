@@ -1,0 +1,18 @@
+# ============================================================
+# yt-mp3 — Python dependencies
+#
+# Versions pinned for reproducibility.
+# yt-dlp is intentionally excluded — it is installed unpinned
+# in the Dockerfile runtime stage to always get the latest
+# version (YouTube frequently breaks older releases).
+# ============================================================
+
+# --- web framework ---
+fastapi==0.115.6
+
+# --- ASGI server ---
+uvicorn[standard]==0.32.1
+
+# --- settings / validation ---
+pydantic==2.10.3
+pydantic-settings==2.6.1
