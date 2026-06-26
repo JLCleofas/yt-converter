@@ -29,7 +29,7 @@ YOUTUBE_URL_RE = re.compile(
 )
 
 YTDLP_BINARY = "yt-dlp"
-FFMPEG_BINARY = "ffmpeg"  # must be on PATH inside the container
+FFMPEG_BINARY = "/usr/bin/ffmpeg"  # must be on PATH inside the container
 
 MAX_CONCURRENT_JOBS = 3
 FILE_TTL_SECONDS = 600  # 10 minutes — files are deleted after this window
